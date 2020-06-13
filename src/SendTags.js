@@ -44,7 +44,7 @@ export default function SendTags () {
                 updateSendTo(formattedSendTos)
                 return
             case "sendType":
-                if (value.toLowerCase() != "and" && value.toLowerCase() != "or") {
+                if (value.toLowerCase() !== "and" && value.toLowerCase() !== "or") {
                     console.error("Defaulting to AND");
                     updateSendType("AND");
                     return;
@@ -78,9 +78,7 @@ export default function SendTags () {
             console.log("Send Type ", sendType);
         }
 
-        const peopleKeys = Object.keys(config);
-
-        if (!tags || tags.length == 0) {
+        if (!tags || tags.length === 0) {
             showError("No tags provided");
             return false;
         }
@@ -88,11 +86,11 @@ export default function SendTags () {
             showError('No people specified');
             return false;
         }
-        if (!sendTo || sendTo.length == 0) {
+        if (!sendTo || sendTo.length === 0) {
             showError('No send to tags specified');
             return false;
         }
-        if (!sendType || (sendType != "AND" && sendType != "OR") ) {
+        if (!sendType || (sendType !== "AND" && sendType !== "OR") ) {
             showError('No send type specified');
             return false;
         }
@@ -111,11 +109,9 @@ export default function SendTags () {
 
     const hasOneNeededTag = (personTags) => {
         for (var i = 0; i < tags.length; i++) { // Iterate over possible tags
-            let foundCount = 0;
             let tag = tags[i]
             if (personTags.includes(tag) && sendTo.includes(tag) ) {
                 return true;
-                break;
             }
         }
         return false;
@@ -129,7 +125,6 @@ export default function SendTags () {
             return;
 
         let sendList = [];
-        let sendToCount = sendTo.length;
         const peopleKeys = Object.keys(config);
 
         peopleKeys.forEach( (key, index) => { // Iterate over possible recipients
