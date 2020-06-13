@@ -1,5 +1,9 @@
 import React, {useState} from 'react'
 
+// { 'Human Torch': ['hero', 'mutant', 'tough', 'dumb', 'tall'], \
+// 'Spiderman': ['hero', 'tough', 'smart', 'tall'], 'Kyle': ['human', 'weak', 'smart', 'short'], 
+// 'JonJon': ['human', 'strong', 'smart', 'tall', 'weird'] }
+
 export default function SendTags () {
     const [recipients, updateRecipients] = useState("")
     const [tags, updateTags] = useState("")
@@ -12,17 +16,36 @@ export default function SendTags () {
         const value = event.target.value
         switch(event.target.name) {
             case "tags":
-                updateTags(value)
+                let formattedTags = value.split(',').map( (t) =>  t.trim() )
+                updateTags(formattedTags)
                 return
             case "config":
-                updateConfig(value)
-                return
+                try{
+                    let reformedVal = value.replace(/“/g, '"')
+                                            .replace(/”/g, '"')
+                                            .replace(/'/g, '"');
+                    let jsonVal = JSON.parse(reformedVal);
+                    updateConfig(jsonVal)
+                    return
+                } catch (e) {
+                    console.error(e);
+                    console.error("Invalid JSON");
+                    updateConfig({})
+                    return
+                }
             case "sendTo":
-                updateSendTo(value)
+                let formattedSendTos = value.split(',').map( (t) =>  t.trim() )
+                updateSendTo(formattedSendTos)
                 return
             case "sendType":
-                updateSendType(value)
-                return
+                if (value.toLowerCase() != "and" && value.toLowerCase() != "or") {
+                    console.error("Defaulting to AND");
+                    updateSendType("AND");
+                    return;
+                } else {
+                    updateSendType(value.toUpperCase())
+                    return
+                }
             default:
                 return;
         }
@@ -30,9 +53,41 @@ export default function SendTags () {
 
     const handleSubmit = (event) => {
         event.preventDefault()
-        /*  implement me
-            hint: we will probably need to update state here to render the right parts
-        */
+        console.log(tags);
+        console.log(config);
+        console.log(sendTo);
+        console.log(sendType);
+
+        let sendList = [];
+        let sendToCount = sendTo.length - 1;
+
+        const peopleKeys = Object.keys(config);
+        peopleKeys.forEach( (key, index) => { // Iterate over possible recipients
+            let person = config[key];
+            for (var i = 0; i < tags.length; i++) { // Iterate over possible tags
+                let foundCount = 0;
+                let tag = tags[i]
+                if (sendType === "OR") {
+                    if (person.includes(tag) && sendTo.includes(tag) ) {
+                        sendList.push(key);
+                        break;
+                    }
+                }
+                else if (sendType === "AND") {
+                    if (person.includes(tag) && sendTo.includes(tag) ) {
+                        foundCount++
+                    }
+                    if (foundCount >= sendToCount) {
+                        sendList.push(key);
+                        break;
+                    }
+                }
+            }
+        })
+        updateRecipients(sendList.join(", "));
+        updateSent(true);
+        console.log("Send List", sendList)
+
     }
 
     return (
@@ -45,7 +100,7 @@ export default function SendTags () {
                     </div>
                     <div>
                         <span style={{paddingRight: "10px", paddingTop: "20px"}} 
-                              dangerouslySetInnerHTML={{__html: 'People Configs (e.g. {“Spiderman”: [“hero”, “tough”, “smart”, “tall”]}): '}}>
+                              dangerouslySetInnerHTML={{__html: "People Configs (e.g. {'Spiderman': ['hero', 'tough', 'smart”, 'tall']})"}}>
                         </span>
                         <input type="text" name="config" style={{width: '500px'}} onChange={handleChange}/>
                     </div>
